@@ -1,0 +1,30 @@
+---
+galaxy_info:
+  role_name: vaultwarden
+  author: buengese
+  description: Sets up Vaultwarden via docker compose
+  license: MIT
+
+  min_ansible_version: "2.4"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+        - buster
+    - name: Ubuntu
+      versions:
+        - "focal"
+    - name: Fedora
+      versions:
+        - "35"
+    - name: ArchLinux
+      versions:
+        - all
+
+  galaxy_tags:
+    - bitwarden
+    - vaultwarden
+    - passwords
+
+dependencies: []
