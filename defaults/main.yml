@@ -1,0 +1,7 @@
+---
+# Configuration
+vaultwarden_domain: "vault.example.com"
+
+# Internal variables
+vaultwarden_compose_dir: /opt/docker/compose/vaultwarden
+vaultwarden_volume: /opt/docker/volumes/vaultwarden
