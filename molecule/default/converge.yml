@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  roles:
+    - role: ansible-role-vaultwarden
+  vars:
+    vaultwarden_admin_token: "test_do_not_use"

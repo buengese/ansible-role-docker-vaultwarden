@@ -1,0 +1,25 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  pre_tasks:
+  - name: Sync apt cache
+    ansible.builtin.apt:
+      cache_valid_time: 3600
+      update_cache: true
+    register: _pre_update_apt_cache
+    until: _pre_update_apt_cache is succeeded
+    when:
+      - ansible_pkg_mgr == "apt"
+  - name: Install libffi-dev
+    when:
+      - ansible_facts['distribution'] == "Debian"
+    ansible.builtin.package:
+      name: libffi-dev
+  vars:
+    pip_install_packages:
+      - docker
+      - docker-compose
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker
