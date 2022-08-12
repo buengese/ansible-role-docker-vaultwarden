@@ -24,30 +24,44 @@
     mode: 0600
   when: not stat_result.stat.exists
 
-- name: Tear down existing service
-  community.docker.docker_compose:
-    project_name: vaultwarden
-    project_src: "{{ vaultwarden_compose_dir }}"
-    state: absent
-
-- name: Update compose file
+- name: Check if compose file changed
   ansible.builtin.template:
     src: "templates/docker-compose.yml.j2"
     dest: "{{ vaultwarden_compose_dir }}/docker-compose.yml"
     mode: 0600
+  check_mode: true
+  register: compose
 
-- name: Create and start service
-  community.docker.docker_compose:
-    project_name: vaultwarden
-    project_src: "{{ vaultwarden_compose_dir }}"
-    pull: true
-  register: output
+- name: Update existing service
+  block:
+    - name: Tear down existing service
+      community.docker.docker_compose:
+        project_name: vaultwarden
+        project_src: "{{ vaultwarden_compose_dir }}"
+        state: absent
 
-- name: Docker status report
-  ansible.builtin.debug:
-    var: output
+    - name: Update compose file
+      ansible.builtin.template:
+        src: "templates/docker-compose.yml.j2"
+        dest: "{{ vaultwarden_compose_dir }}/docker-compose.yml"
+        mode: 0600
 
-- name: Assert that container is running
-  ansible.builtin.assert:
-    that:
-      - output.services.vaultwarden.server.state.running
+    - name: Get info on docker host
+      community.docker.docker_host_info:
+      register: result
+
+    - ansible.builtin.debug:
+        var: result.host_info
+
+    - name: Create and start service
+      community.docker.docker_compose:
+        project_name: vaultwarden
+        project_src: "{{ vaultwarden_compose_dir }}"
+        pull: true
+      register: output
+
+    - name: Assert that container is running
+      ansible.builtin.assert:
+        that:
+          - output.services.vaultwarden.server.state.running
+  when: compose.changed
