@@ -2,10 +2,10 @@
 galaxy_info:
   role_name: vaultwarden
   author: buengese
-  description: Sets up Vaultwarden via docker compose
-  license: MIT
+  description: Sets up Vaultwarden too run via docker as systemd service.
+  license: GPL-3.0-or-later
 
-  min_ansible_version: "2.4"
+  min_ansible_version: "2.1"
 
   platforms:
     - name: Debian
@@ -17,7 +17,7 @@ galaxy_info:
         - "focal"
     - name: Fedora
       versions:
-        - "35"
+        - "39"
     - name: ArchLinux
       versions:
         - all

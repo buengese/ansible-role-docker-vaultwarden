@@ -6,12 +6,6 @@ Quick and dirty ansible role to setup [Vaultwarden](https://github.com/dani-garc
 Role Variables
 --------------
 
-The following variables determine the install and update behaviour of this role.
-
-* `vaultwarden_domain`: The domain Vaultwarden will be reachable on.
-* `vaultwarden_admin_token`: The Vaultwarden admin token.
-* `vaultwarden_compose_dir`: The directory where docker compose files will be stored.
-* `vaultwarden_volume_dir`: The docker volume dir for Vaultwarden.
 
 
 Supported OS
@@ -25,4 +19,4 @@ Supported OS
 License
 -------
 
-MIT
+GPL-3.0-or-later
