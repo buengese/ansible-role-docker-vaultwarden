@@ -24,7 +24,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install test dependencies.
-        run: pip3 install ansible-lint molecule==3.6.1 molecule-goss yamllint
+        run: pip3 install ansible-lint molecule yamllint
 
       - name: Install role dependencies.
         run: ansible-galaxy install geerlingguy.docker geerlingguy.pip
