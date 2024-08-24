@@ -6,3 +6,6 @@
     - role: ansible-role-vaultwarden
   vars:
     vaultwarden_admin_token: "test_do_not_use"
+    vaultwarden_hostname: "vault.example.com"
+    vaultwarden_database_type: sqlite
+    vaultwarden_container_http_bind_port: "127.0.0.1:8080"

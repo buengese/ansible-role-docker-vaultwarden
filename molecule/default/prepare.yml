@@ -20,6 +20,7 @@
     pip_install_packages:
       - docker
       - docker-compose
+      - requests
   roles:
     - geerlingguy.pip
     - geerlingguy.docker
