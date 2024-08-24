@@ -9,6 +9,7 @@
     state: restarted
     enabled: "{{ vaultwarden_enabled }}"
   when: not ansible_check_mode
+  changed_when: false
 
 - name: Verify that systemd services started successfully
   block:
