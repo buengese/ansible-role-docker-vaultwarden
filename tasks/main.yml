@@ -1,16 +1,22 @@
 ---
-
-- block:
+- when:
+    - "'uninstall-all' not in ansible_run_tags"
+    - "'uninstall-vaultwarden' not in ansible_run_tags"
+  block:
     - name: Validate vaultwarden config
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
 
+    - name: Setup vaultwarden user
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_user.yml"
+
     - name: Install Vaultwaden
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
-  when: "'uninstall' not in ansible_run_tags"
-  tags: always
 
-- block:
-    - when: Uninstall Vaultwarden
+    - name: Start Vaultwarden service
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/service.yml"
+
+- when:
+    - "'uninstall-vaultwarden' in ansible_run_tags or 'uninstall-all' in ansible_run_tags"
+  block:
+    - name: Uninstall Vaultwarden
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
-  tags:
-    - uninstall

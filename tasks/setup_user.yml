@@ -1,0 +1,25 @@
+---
+- when: not vaultwarden_uid and not vaultwarden_gid
+  block:
+    - name: Ensure vaultwarden group is created
+      ansible.builtin.group:
+        name: "{{ vaultwarden_user }}"
+        gid: "{{ omit if vaultwarden_gid is none else vaultwarden_gid }}"
+        state: present
+      register: vaultwarden_base_group_result
+
+    - name: Ensure vaultwarden user is created
+      ansible.builtin.user:
+        name: "{{ vaultwarden_user }}"
+        uid: "{{ omit if vaultwarden_uid is none else vauiltwarden_uid }}"
+        state: present
+        group: "{{ vaultwarden_user }}"
+        home: "{{ vaultwarden_base_path }}"
+        create_home: false
+        system: true
+      register: vaultwarden_base_user_result
+
+    - name: Initialize vaultwarden_uid and vaultwarden_gid
+      ansible.builtin.set_fact:
+        vaultwarden_uid: "{{ vaultwarden_base_user_result.uid }}"
+        vauiltwarden_gid: "{{ vaultwarden_base_group_result.gid }}"

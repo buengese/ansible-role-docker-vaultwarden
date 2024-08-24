@@ -1,0 +1,4 @@
+---
+- name: "Diplay generated admin token"
+  ansible.builtin.debug:
+    msg: "Generated Vaultwarden admin token: {{ generated_token }}"

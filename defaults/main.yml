@@ -7,7 +7,7 @@ vaultwarden_enabled: true
 
 vaultwarden_identifier: vaultwarden
 
-vaultwarden_version: 1.30.1
+vaultwarden_version: 1.32.0
 
 # The fully-qualified name of your Vaultwarden server (e.g. `vaultwarden.example.com`)
 vaultwarden_hostname: ''
@@ -21,13 +21,14 @@ vaultwarden_hostname: ''
 # Example: '/my-secret-warden'
 vaultwarden_path_prefix: '/'
 
-vaultwarden_container_image: "{{ vaultwarden_container_registry_prefix }}dani-garcia/vaultwarden:{{ vaultwarden_container_image_tag }}"
+vaultwarden_container_image: "ghcr.io/dani-garcia/vaultwarden:{{ vaultwarden_container_image_tag }}"
 vaultwarden_container_image_tag: "{{ vaultwarden_version }}-alpine"
 vaultwarden_container_image_force_pull: "{{ vaultwarden_container_image.endswith(':latest') }}"
-vaultwarden_container_registry_prefix: ghcr.io/
 vaultwarden_container_hostname: "{{ vaultwarden_hostname }}"
 
 vaultwarden_container_network: "{{ vaultwarden_identifier }}"
+
+vaultwarden_user: "{{ vaultwarden_identifier }}"
 
 # A list of additional container networks that the container would be connected to.
 # The playbook does not create these networks, so make sure they already exist.
@@ -42,10 +43,10 @@ vaultwarden_container_additional_networks: "{{ vaultwarden_container_additional_
 vaultwarden_container_additional_networks_auto: []
 vaultwarden_container_additional_networks_custom: []
 
-vaultwarden_uid: ''
-vaultwarden_gid: ''
+vaultwarden_uid: ~
+vaultwarden_gid: ~
 
-vaultwarden_base_path: "/vaultwarden"
+vaultwarden_base_path: "/docker/{{ vaultwarden_identifier }}"
 vaultwarden_data_dir_path: "{{ vaultwarden_base_path }}/data"
 vaultwarden_cache_dir_path: "{{ vaultwarden_base_path }}/cache"
 vaultwarden_ephemeral_dir_path: "{{ vaultwarden_base_path }}/ephemeral"
@@ -227,48 +228,10 @@ vaultwarden_floc_optout_enabled: true
 # See: `vaultwarden_http_header_strict_transport_security`
 vaultwarden_hsts_preload_enabled: false
 
-# vaultwarden_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
-# See `../templates/labels.j2` for details.
-#
-# To inject your own other container labels, see `vaultwarden_container_labels_additional_labels`.
-vaultwarden_container_labels_traefik_enabled: true
-vaultwarden_container_labels_traefik_docker_network: "{{ vaultwarden_container_network }}"
-vaultwarden_container_labels_traefik_hostname: "{{ vaultwarden_hostname }}"
-# The path prefix must either be `/` or not end with a slash (e.g. `/vaultwarden`).
-vaultwarden_container_labels_traefik_path_prefix: "{{ vaultwarden_path_prefix }}"
-vaultwarden_container_labels_traefik_rule_ui: "Host(`{{ vaultwarden_container_labels_traefik_hostname }}`){% if vaultwarden_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ vaultwarden_container_labels_traefik_path_prefix | quote }}`){% endif %}"
-vaultwarden_container_labels_traefik_priority: 0
-vaultwarden_container_labels_traefik_entrypoints: web-secure
-vaultwarden_container_labels_traefik_tls_certResolver: default  # noqa var-naming
-
-# Controls which additional headers to attach to all HTTP responses.
-# To add your own headers, use `vaultwarden_container_labels_traefik_additional_response_headers_custom`
-vaultwarden_container_labels_traefik_additional_response_headers: "{{ vaultwarden_container_labels_traefik_additional_response_headers_auto | combine(vaultwarden_container_labels_traefik_additional_response_headers_custom) }}"
-vaultwarden_container_labels_traefik_additional_response_headers_auto: |
-  {{
-    {}
-    | combine ({'X-XSS-Protection': vaultwarden_http_header_xss_protection} if vaultwarden_http_header_xss_protection else {})
-    | combine ({'X-Frame-Options': vaultwarden_http_header_frame_options} if vaultwarden_http_header_frame_options else {})
-    | combine ({'X-Content-Type-Options': vaultwarden_http_header_content_type_options} if vaultwarden_http_header_content_type_options else {})
-    | combine ({'Content-Security-Policy': vaultwarden_http_header_content_security_policy} if vaultwarden_http_header_content_security_policy else {})
-    | combine ({'Permission-Policy': vaultwarden_http_header_content_permission_policy} if vaultwarden_http_header_content_permission_policy else {})
-    | combine ({'Strict-Transport-Security': vaultwarden_http_header_strict_transport_security} if vaultwarden_http_header_strict_transport_security and vaultwarden_container_labels_traefik_tls else {})
-  }}
-vaultwarden_container_labels_traefik_additional_response_headers_custom: {}
-
 # vaultwarden_container_http_bind_port controls whether (and how) the container exposes its HTTP port (`vaultwarden_config_rocket_port`).
 # Leave empty to not expose it.
 # Example values: `127.0.0.1:8080`, `0.0.0.0:8080`, `8080`.
 vaultwarden_container_http_bind_port: ''
-
-# vaultwarden_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
-# See `../templates/labels.j2` for details.
-#
-# Example:
-# vaultwarden_container_labels_additional_labels: |
-#   my.label=1
-#   another.label="here"
-vaultwarden_container_labels_additional_labels: ''
 
 # vaultwarden_container_additional_environment_variables contains a multiline string with additional environment variables to pass to the container.
 #

@@ -32,7 +32,6 @@ ExecStartPre=docker create \
 			{% endif %}
 			--health-interval=10s \
 			--env-file={{ vaultwarden_base_path }}/env \
-			--label-file={{ vaultwarden_base_path }}/labels \
 			--mount type=bind,src={{ vaultwarden_data_dir_path }},dst=/data \
 			--mount type=bind,src={{ vaultwarden_cache_dir_path }},dst=/cache \
 			--mount type=bind,src={{ vaultwarden_ephemeral_dir_path }},dst=/ephemeral \

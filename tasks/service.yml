@@ -1,0 +1,32 @@
+---
+- name: Ensure systemd is reloaded
+  ansible.builtin.service:
+    daemon_reload: true
+
+- name: Ensure service is restarted
+  ansible.builtin.service:
+    name: "docker-{{ vaultwarden_identifier }}"
+    state: restarted
+    enabled: "{{ vaultwarden_enabled }}"
+  when: not ansible_check_mode
+
+- name: Verify that systemd services started successfully
+  block:
+    - name: Wait a bit, so that services can start (or fail)
+      ansible.builtin.wait_for:
+        timeout: 2
+      delegate_to: 127.0.0.1
+      become: false
+
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: Fail if service isn't detected to be running
+      ansible.builtin.fail:
+        msg: >-
+          {{ item }} was not detected to be running.
+      with_items:
+        - "docker.service"
+        - "docker-{{ vaultwarden_identifier }}.service"
+      when:
+        - "item.endswith('.service') and (ansible_facts.services[item] | default(none) is none or ansible_facts.services[item].state != 'running')"

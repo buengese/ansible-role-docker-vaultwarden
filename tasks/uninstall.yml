@@ -2,24 +2,33 @@
 
 - name: Check existence of Vaultwarden systemd service
   ansible.builtin.stat:
-    path: "/etc/systemd/system/{{ vaultwarden_identifier }}.service"
+    path: "/etc/systemd/system/docker-{{ vaultwarden_identifier }}.service"
   register: vaultwarden_service_stat
 
 - when: vaultwarden_service_stat.stat.exists | bool
   block:
     - name: Ensure Vaultwarden systemd service is stopped
       ansible.builtin.service:
-        name: "{{ vaultwarden_identifier }}"
+        name: "docker-{{ vaultwarden_identifier }}"
         state: stopped
         enabled: false
         daemon_reload: true
 
     - name: Ensure Vaultwarden systemd service does not exists
       ansible.builtin.file:
-        path: "/etc/systemd/system/{{ vaultwarden_identifier }}.service"
+        path: "/etc/systemd/system/docker-{{ vaultwarden_identifier }}.service"
         state: absent
 
     - name: Ensure Vaultwarden path doesn't exist
       ansible.builtin.file:
         path: "{{ vaultwarden_base_path }}"
         state: absent
+
+    # Just to be sure we only remove the user if it's the default vaultwarden user. 
+    # In case role user uses an existing user for this role.
+    - name: Ensure that the Vaultwarden user doesn't exist
+      ansible.builtin.user:
+        name: "{{ vaultwarden_user }}"
+        state: absent
+      when:
+        - "{{ vaultwarden_user }} == 'vaultwarden'"

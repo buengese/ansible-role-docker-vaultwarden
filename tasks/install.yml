@@ -13,6 +13,69 @@
     - "{{ vaultwarden_cache_dir_path }}"
     - "{{ vaultwarden_ephemeral_dir_path }}"
 
+- name: Block generate admin token if it does not exist
+  block:
+    - name: Check if a password file exists
+      ansible.builtin.stat:
+        path: "{{ vaultwarden_base_path }}/admin_token"
+      register: admin_token_file
+
+
+    - name: Generate a new password
+      when: not admin_token_file.stat.exists
+      block:
+        - name: Generate a secure password
+          ansible.builtin.shell: |
+            tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 64
+          register: generate_password_result
+
+        - name: Install expect package
+          ansible.builtin.package:
+            name: expect
+            state: present
+    
+        - name: Store the generated password
+          ansible.builtin.set_fact:
+            generated_token: "{{ generate_password_result.stdout }}"
+
+        - name: Generate argon2 hash from the password
+          ansible.builtin.shell: |
+            /usr/bin/expect <<EOF
+            set timeout 30
+            spawn docker run --rm -it -i {{ vaultwarden_container_image }} /vaultwarden hash
+            expect "Password:"
+            send "{{ generated_token }}\r"
+            expect "Confirm Password:"
+            send "{{ generated_token }}\r"
+            expect eof
+            EOF
+          register: vaultwarden_output
+          changed_when: false
+
+        - name: Extract argon2 hash from vaultwarden output
+          set_fact:
+            generated_token_hash: "{{ vaultwarden_output.stdout.split('ADMIN_TOKEN=')[1].split(\"'\")[1] }}"
+
+        - name: Store the argon2 hash in file
+          copy:
+            content: "{{ generated_token_hash }}"
+            dest: "{{ vaultwarden_base_path }}/admin_token"
+            owner: "{{ vaultwarden_uid }}"
+            group: "{{ vaultwarden_gid }}"
+            mode: 0600
+          notify: "Diplay generated admin token"
+
+    - name: Read token from file
+      ansible.builtin.slurp:
+        src: "{{ vaultwarden_base_path }}/admin_token"
+      register: stored_token_hash
+
+    - name: Set fact vaultwarden_config_admin_token
+      ansible.builtin.set_fact:
+        vaultwarden_config_admin_token: "{{ stored_token_hash.content | b64decode }}"      
+  when:
+    - vaultwarden_config_admin_token == ''
+
 - name: Ensure Vaultwarden support files created
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
@@ -22,7 +85,6 @@
     mode: 0640
   with_items:
     - env
-    - labels
 
 - name: Ensure Vaultwarden image is pulled
   community.docker.docker_image:
@@ -42,6 +104,20 @@
 
 - name: Ensure Vaultwarden systemd service installed
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/vaultwarden.service.j2"
-    dest: "/etc/systemd/system/{{ vaultwarden_identifier }}.service"
+    src: "{{ role_path }}/templates/docker-vaultwarden.service.j2"
+    dest: "/etc/systemd/system/docker-{{ vaultwarden_identifier }}.service"
     mode: 0640
+
+- name: Check if Vaultwarden config exists
+  ansible.builtin.stat:
+    path: "{{ vaultwarden_data_dir_path }}/config.json"
+  register: config
+
+- name: Clear potentially-existing previous admin_token config value if vaultwarden_config_admin_token is unset
+  ansible.builtin.lineinfile:
+    name: "{{ vaultwarden_data_dir_path }}/config.json"
+    line: "admin_token"
+    state: absent
+  when:
+    - config.stat.exists | bool
+    - vaultwarden_config_admin_token == ''
