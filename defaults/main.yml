@@ -53,7 +53,7 @@ vaultwarden_ephemeral_dir_path: "{{ vaultwarden_base_path }}/ephemeral"
 
 vaultwarden_systemd_required_systemd_services_list: ['docker.service']
 
-vaultwarden_database_type: postgres
+vaultwarden_database_type: sqlite
 vaultwarden_database_hostname: ''
 vaultwarden_database_port: 5432
 vaultwarden_database_name: vaultwarden
