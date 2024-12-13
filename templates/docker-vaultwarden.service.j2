@@ -12,12 +12,6 @@ Environment="HOME=/root"
 ExecStartPre=-sh -c 'docker stop --time=3 {{ vaultwarden_identifier }} 2>/dev/null'
 ExecStartPre=-sh -c 'docker rm {{ vaultwarden_identifier }} 2>/dev/null'
 
-{#
-	The `--health-interval` health check parameter was changed because by default:
-	- health checks start immediately.. and they always fail, because the HTTP server takes a bit of time to start
-	- the recheck interval is too long (60s) and the service is considered `starting`
-	- when a service is not `healthy`, Traefik does not reverse-proxy to it -- leading to 1 minute downtime every single time this restarts
-#}
 ExecStartPre=docker create \
 			--rm \
 			--name={{ vaultwarden_identifier }} \
