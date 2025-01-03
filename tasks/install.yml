@@ -1,6 +1,11 @@
 ---
+- name: Ensure Docker base path exists
+  ansible.builtin.file:
+    path: "{{ docker_base_path }}"
+    state: directory
+    mode: "0750"
 
-- name: Ensure Vaultwarden paths exist
+- name: Ensure Vaultwarden paths exists
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -14,6 +19,8 @@
     - "{{ vaultwarden_ephemeral_dir_path }}"
 
 - name: Block generate admin token if it does not exist
+  when:
+    - vaultwarden_config_admin_token == ''
   block:
     - name: Check if a password file exists
       ansible.builtin.stat:
@@ -33,7 +40,7 @@
           ansible.builtin.package:
             name: expect
             state: present
-    
+
         - name: Store the generated password
           ansible.builtin.set_fact:
             generated_token: "{{ generate_password_result.stdout }}"
@@ -53,16 +60,16 @@
           changed_when: false
 
         - name: Extract argon2 hash from vaultwarden output
-          set_fact:
+          ansible.builtin.set_fact:
             generated_token_hash: "{{ vaultwarden_output.stdout.split('ADMIN_TOKEN=')[1].split(\"'\")[1] }}"
 
         - name: Store the argon2 hash in file
-          copy:
+          ansible.builtin.copy:
             content: "{{ generated_token_hash }}"
             dest: "{{ vaultwarden_base_path }}/admin_token"
             owner: "{{ vaultwarden_uid }}"
             group: "{{ vaultwarden_gid }}"
-            mode: 0600
+            mode: "0600"
           notify: "Diplay generated admin token"
 
     - name: Read token from file
@@ -72,9 +79,7 @@
 
     - name: Set fact vaultwarden_config_admin_token
       ansible.builtin.set_fact:
-        vaultwarden_config_admin_token: "{{ stored_token_hash.content | b64decode }}"      
-  when:
-    - vaultwarden_config_admin_token == ''
+        vaultwarden_config_admin_token: "{{ stored_token_hash.content | b64decode }}"
 
 - name: Ensure Vaultwarden support files created
   ansible.builtin.template:
@@ -82,7 +87,7 @@
     dest: "{{ vaultwarden_base_path }}/{{ item }}"
     owner: "{{ vaultwarden_uid }}"
     group: "{{ vaultwarden_gid }}"
-    mode: 0640
+    mode: "0640"
   with_items:
     - env
 
@@ -106,7 +111,7 @@
   ansible.builtin.template:
     src: "{{ role_path }}/templates/docker-vaultwarden.service.j2"
     dest: "/etc/systemd/system/docker-{{ vaultwarden_identifier }}.service"
-    mode: 0640
+    mode: "0640"
 
 - name: Check if Vaultwarden config exists
   ansible.builtin.stat:

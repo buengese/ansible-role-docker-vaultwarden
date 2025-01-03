@@ -24,11 +24,19 @@
         path: "{{ vaultwarden_base_path }}"
         state: absent
 
-    # Just to be sure we only remove the user if it's the default vaultwarden user. 
+    # Just to be sure we only remove the user if it's the default vaultwarden user.
     # In case role user uses an existing user for this role.
-    - name: Ensure that the Vaultwarden user doesn't exist
+    - name: Ensure that the Vaultwarden user doesn't exist.
       ansible.builtin.user:
         name: "{{ vaultwarden_user }}"
         state: absent
+        remove: true
       when:
-        - "{{ vaultwarden_user }} == 'vaultwarden'"
+        - vaultwarden_user == 'vaultwarden'
+
+    - name: Ensure that the Vaultwarden group doesn't exist.
+      ansible.builtin.group:
+        name: "{{ vaultwarden_group }}"
+        state: absent
+      when:
+        - vaultwarden_group == 'vaultwarden'

@@ -1,4 +1,5 @@
 ---
+docker_base_path: "/docker"
 
 # Vaultwaden is a lightweight unofficial and compatible implementation of the Bitwarden password manager.
 # Project source code URL: https://github.com/dani-garcia/vaultwarden
@@ -29,6 +30,7 @@ vaultwarden_container_hostname: "{{ vaultwarden_hostname }}"
 vaultwarden_container_network: "{{ vaultwarden_identifier }}"
 
 vaultwarden_user: "{{ vaultwarden_identifier }}"
+vaultwarden_group: "{{ vaultwarden_identifier }}"
 
 # A list of additional container networks that the container would be connected to.
 # The playbook does not create these networks, so make sure they already exist.
@@ -46,7 +48,7 @@ vaultwarden_container_additional_networks_custom: []
 vaultwarden_uid: ~
 vaultwarden_gid: ~
 
-vaultwarden_base_path: "/docker/{{ vaultwarden_identifier }}"
+vaultwarden_base_path: "{{ docker_base_path }}/{{ vaultwarden_identifier }}"
 vaultwarden_data_dir_path: "{{ vaultwarden_base_path }}/data"
 vaultwarden_cache_dir_path: "{{ vaultwarden_base_path }}/cache"
 vaultwarden_ephemeral_dir_path: "{{ vaultwarden_base_path }}/ephemeral"
