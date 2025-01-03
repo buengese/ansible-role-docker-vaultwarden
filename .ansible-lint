@@ -10,3 +10,4 @@ skip_list:
   - no-changed-when
   - unnamed-task
   - no-handler
+  - yaml[line-length]
